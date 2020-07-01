@@ -6,7 +6,7 @@ const expressPlayground = require("graphql-playground-middleware-express")
 const { readFileSync } = require("fs");
 const { MongoClient } = require("mongodb");
 const { resolvers } = require("./resolvers");
-const typeDefs = readFileSync("./typeDefs.graphql", "UTF-8");
+const typeDefs = readFileSync("server/typeDefs.graphql", "UTF-8");
 
 async function start() {
   const MONGO_DB = process.env.DB_HOST;

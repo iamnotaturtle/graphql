@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon -e js,json,graphql",
+    "start": "nodemon server/server.js",
     "lint": "eslint ."
   },
   "dependencies": {
