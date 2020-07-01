@@ -1,6 +1,7 @@
 const { authorizeWithGithub } = require("../api");
 const { toJSON } = require("../api");
 const { default: fetch } = require("node-fetch");
+const { ObjectID } = require("mongodb");
 
 module.exports = {
   async postPhoto(parent, args, { db, currentUser }) {
@@ -75,5 +76,9 @@ module.exports = {
       token: user.githubToken,
       user,
     };
+  },
+  async tagPhoto(parent, args, { db }) {
+    await db.collection("tags").replaceOne(args, args, { upsert: true });
+    return db.collection("photos").findOne({ _id: ObjectID(args.photoID) });
   },
 };
