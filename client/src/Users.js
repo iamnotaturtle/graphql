@@ -12,8 +12,23 @@ mutation addFakeUsers($count:Int!) {
     } 
 }`
 
+const updateUserCache = (cache, { data:{ addFakeUsers } }) => {
+    let data = Object.assign({}, cache.readQuery({ query: ROOT_QUERY }));
+    data.totalUsers += addFakeUsers.length;
+    data.allUsers = [
+        ...data.allUsers,
+        ...addFakeUsers 
+    ]
+    cache.writeQuery({ query: ROOT_QUERY, data })
+}
+
 const Users = () => {
-    const { loading, error, data, refetch } = useQuery(ROOT_QUERY);
+    const { loading, error, data, refetch } = useQuery(
+        ROOT_QUERY,
+        {
+            fetchPolicy: 'cache-and-network'
+        }
+    );
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error :(</p>;
     
@@ -23,7 +38,12 @@ const Users = () => {
 }
 
 const UserList = ({ count, users, refetch }) => {
-    const [addFakeUsers, {data}] = useMutation(ADD_FAKE_USERS_MUTATION);
+    const [addFakeUsers] = useMutation(
+        ADD_FAKE_USERS_MUTATION,
+        {
+            update: updateUserCache,
+        }
+    );
 
     return <div>
         <p>{count} Users</p>
