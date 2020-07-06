@@ -6,6 +6,9 @@ const expressPlayground = require("graphql-playground-middleware-express")
 const { readFileSync } = require("fs");
 const { MongoClient } = require("mongodb");
 const { createServer } = require("http");
+const path = require("path");
+const depthLimit = require("graphql-depth-limit");
+const { createComplexityLimitRule } = require("graphql-validation-complexity");
 const { resolvers } = require("./resolvers");
 const typeDefs = readFileSync("server/typeDefs.graphql", "UTF-8");
 
@@ -20,6 +23,12 @@ async function start() {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
+    validationRules: [
+      depthLimit(5),
+      createComplexityLimitRule(1000, {
+        onCost: (cost) => console.log("query cost: ", cost),
+      }),
+    ],
     context: async ({ req, connection }) => {
       const githubToken = req
         ? req.headers.authorization
@@ -35,9 +44,14 @@ async function start() {
     "/playground",
     expressPlayground({ endpoint: "http://localhost:4000/graphql" })
   );
+  app.use(
+    "/img/photos",
+    express.static(path.join(__dirname, "assets", "photos"))
+  );
 
   server.applyMiddleware({ app });
   const httpServer = createServer(app);
+  httpServer.timeout = 5000;
   server.installSubscriptionHandlers(httpServer); // Web socket support
 
   httpServer.listen({ port: 4000 }, () => {

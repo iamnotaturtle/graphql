@@ -6,8 +6,9 @@ import { InMemoryCache, HttpLink, ApolloLink, split, ApolloClient } from 'apollo
 import { persistCache } from 'apollo-cache-persist';
 import { WebSocketLink } from 'apollo-link-ws' ;
 import { getMainDefinition } from 'apollo-utilities';
+import { createUploadLink } from 'apollo-upload-client'
 
-const httpLink = new HttpLink({ uri: 'http://localhost:4000/graphql' });
+const httpLink = new createUploadLink({ uri: 'http://localhost:4000/graphql' });
 const wsLink = new WebSocketLink({
     uri: `ws://localhost:4000/graphql`,
     options: { reconnect: true }

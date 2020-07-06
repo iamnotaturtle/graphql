@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, NavLink } from 'react-router-dom';
 import { gql } from 'apollo-boost';
 import { useQuery, useMutation, useApolloClient } from '@apollo/react-hooks';
 import { ROOT_QUERY } from './App';
@@ -53,6 +53,7 @@ const CurrentUser = ({ name, avatar, logout }) =>
         <img src={avatar} width={48} height={48} alt="" />
         <h1>{name}</h1>
         <button onClick={logout}>logout</button>
+        <NavLink to="/newPhoto">Post Photo</NavLink>
     </div>
 
 const AuthorizedUser = () => {
@@ -75,8 +76,11 @@ const AuthorizedUser = () => {
     }, [history, githubAuthMutation]);
 
     return (
-        <Me signingIn={signingIn} requestCode={requestCode}
-            logout={() => {logout(client)}} />
+        <Me 
+            signingIn={signingIn} 
+            requestCode={requestCode}
+            logout={() => {logout(client)}} 
+        />
     );
 }
 

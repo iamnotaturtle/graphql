@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import React, { useEffect, Fragment } from 'react';
+import { Switch, Route, BrowserRouter } from 'react-router-dom'
 import { gql } from 'apollo-boost';
 import { useApolloClient } from '@apollo/react-hooks';
 import AuthorizedUser from './AuthorizedUser';
 import Users from './Users';
+import Photos from './Photos';
+import PostPhoto from './PostPhotos';
 
 export const ROOT_QUERY = gql`
 fragment userInfo on User { 
@@ -15,6 +17,11 @@ query allUsers {
   totalUsers 
   allUsers {
     ...userInfo
+  }
+  allPhotos {
+    id 
+    name 
+    url
   }
   me {
     ...userInfo
@@ -53,12 +60,25 @@ const App = () => {
   });
 
   return (
-  <BrowserRouter>
-    <div>
-      <AuthorizedUser /> 
-      <Users />
-    </div> 
-  </BrowserRouter>
+    <BrowserRouter>
+      <Switch>
+        <Route
+          exact
+          path="/"
+          component={() => 
+            <Fragment>
+              <AuthorizedUser /> 
+              <Users />
+              <Photos />
+            </Fragment>
+          }
+        />
+        <Route path="/newPhoto" component={PostPhoto}/>
+        <Route component={({ location }) => 
+          <h1>"{location.pathname}" not found</h1>
+        }/>
+      </Switch>
+    </BrowserRouter>
   );
 }
 

@@ -1,7 +1,7 @@
-const { authorizeWithGithub } = require("../api");
-const { toJSON } = require("../api");
 const { default: fetch } = require("node-fetch");
 const { ObjectID } = require("mongodb");
+const path = require("path");
+const { authorizeWithGithub, uploadStream, toJSON } = require("../api");
 
 module.exports = {
   async postPhoto(parent, args, { db, currentUser, pubsub }) {
@@ -18,9 +18,20 @@ module.exports = {
     const { insertedIds } = await db.collection("photos").insert(newPhoto);
     newPhoto.id = insertedIds[0];
 
+    const toPath = path.join(
+      __dirname,
+      "..",
+      "assets",
+      "photos",
+      `${newPhoto.id}.jpg`
+    );
+    const { stream } = await args.input.file;
+    await uploadStream(stream, toPath);
+
     pubsub.publish("photo-added", { newPhoto });
     return newPhoto;
   },
+
   async githubAuth(parent, { code }, { db, pubsub }) {
     let {
       message,
@@ -55,6 +66,7 @@ module.exports = {
     result.upserted && pubsub.publish("user-added", { newUser: user });
     return { user, token: access_token };
   },
+
   async addFakeUsers(parent, { count }, { db, pubsub }) {
     const randomUserApi = `https://randomuser.me/api/?results=${count}`;
     const { results } = await fetch(randomUserApi).then(toJSON);
@@ -70,6 +82,7 @@ module.exports = {
     users.forEach((newUser) => pubsub.publish("user-added", { newUser }));
     return users;
   },
+
   async fakeUserAuth(parent, { githubLogin }, { db }) {
     const user = await db.collection("users").findOne({ githubLogin });
 
@@ -82,6 +95,7 @@ module.exports = {
       user,
     };
   },
+
   async tagPhoto(parent, args, { db }) {
     await db.collection("tags").replaceOne(args, args, { upsert: true });
     return db.collection("photos").findOne({ _id: ObjectID(args.photoID) });
