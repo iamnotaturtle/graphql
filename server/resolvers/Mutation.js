@@ -4,7 +4,7 @@ const { default: fetch } = require("node-fetch");
 const { ObjectID } = require("mongodb");
 
 module.exports = {
-  async postPhoto(parent, args, { db, currentUser }) {
+  async postPhoto(parent, args, { db, currentUser, pubsub }) {
     if (!currentUser) {
       throw new Error("Must be authorized to post photos");
     }
@@ -17,9 +17,11 @@ module.exports = {
 
     const { insertedIds } = await db.collection("photos").insert(newPhoto);
     newPhoto.id = insertedIds[0];
+
+    pubsub.publish("photo-added", { newPhoto });
     return newPhoto;
   },
-  async githubAuth(parent, { code }, { db }) {
+  async githubAuth(parent, { code }, { db, pubsub }) {
     let {
       message,
       access_token,
@@ -45,13 +47,15 @@ module.exports = {
 
     const {
       ops: [user],
+      result,
     } = await db
       .collection("users")
       .replaceOne({ githubLogin: login }, latestUserInfo, { upsert: true });
 
+    result.upserted && pubsub.publish("user-added", { newUser: user });
     return { user, token: access_token };
   },
-  async addFakeUsers(parent, { count }, { db }) {
+  async addFakeUsers(parent, { count }, { db, pubsub }) {
     const randomUserApi = `https://randomuser.me/api/?results=${count}`;
     const { results } = await fetch(randomUserApi).then(toJSON);
 
@@ -63,6 +67,7 @@ module.exports = {
     }));
 
     await db.collection("users").insert(users);
+    users.forEach((newUser) => pubsub.publish("user-added", { newUser }));
     return users;
   },
   async fakeUserAuth(parent, { githubLogin }, { db }) {
