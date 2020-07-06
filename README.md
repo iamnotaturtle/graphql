@@ -5,7 +5,12 @@ Repo following the book [Learning GraphQL](https://www.oreilly.com/library/view/
 Repo is split into client and server directories
 
 ## Setup
+### Prerequisites
+* Install mongdodb
+
 ```
+mongo # Start database
+
 yarn
 yarn dev:server # Start server
 
